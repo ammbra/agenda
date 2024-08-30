@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+//import module java.base;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,13 +27,7 @@ public class TodoController {
 	public String index(Model model) {
 		List<Memo> memos = new ArrayList<>();
 		for (TodoItem item : todoRepository.findAll()) {
-			Highlight color = switch (item.getDeadline()) {
-				case LocalDate d when d.isBefore(LocalDate.now()) -> Highlight.RED;
-				case LocalDate d when d.isBefore(LocalDate.now().plusDays(10)) -> Highlight.YELLOW;
-				case LocalDate d when d.isBefore(LocalDate.now().plusDays(20)) -> Highlight.BLUE;
-				case LocalDate _ -> Highlight.WHITE;
-			};
-
+			Highlight color = paint(item);
 			Memo memo = switch (item) {
 				case ImageTodoItem i ->
 						new Memo(i.getId(), i.getTitle(), i.getDescription(), null, i.getImage(), color, i.getCreatedOn(), i.getDeadline());
@@ -45,6 +40,16 @@ public class TodoController {
 		}
 		model.addAttribute("todos", memos);
 		return "index";
+	}
+
+	private static Highlight paint(TodoItem item) {
+		Highlight color = switch (item.getDeadline()) {
+			case LocalDate d when d.isBefore(LocalDate.now()) -> Highlight.RED;
+			case LocalDate d when d.isBefore(LocalDate.now().plusDays(10)) -> Highlight.YELLOW;
+			case LocalDate d when d.isBefore(LocalDate.now().plusDays(20)) -> Highlight.BLUE;
+			case LocalDate _ -> Highlight.WHITE;
+		};
+		return color;
 	}
 
 	@PostMapping("/add")
@@ -60,6 +65,7 @@ public class TodoController {
 	}
 
 	@DeleteMapping("/{id}")
+	@ResponseBody
 	public String delete(@PathVariable Long id) {
         todoRepository.deleteById(id);
         return "redirect:/";
