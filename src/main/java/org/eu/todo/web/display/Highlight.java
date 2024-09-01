@@ -1,4 +1,4 @@
-package org.eu.todo.web;
+package org.eu.todo.web.display;
 
 public enum Highlight {
 	RED("table-danger"),

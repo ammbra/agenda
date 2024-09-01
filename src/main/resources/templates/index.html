@@ -1,47 +1,54 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head th:replace="~{fragments/common :: common(~{::title}, ~{::script})}">
-    <title>To-Do List</title>
+    <title th:text="#{header.title}"/>
     <script src="script.js"></script>
 </head>
 <body>
 <div class="container">
-    <h1 class="mt-5">To-Do List</h1>
+    <h1 class="mt-5" th:text="#{header.title}"/>
     <form th:action="@{/add}" th:object="${item}" method="post" class="mb-4"  enctype="multipart/form-data">
         <div class="form-group mb-3">
-            <label for="title">Title</label>
+            <label for="title" th:text="#{label.title}"/>
             <input type="text" class="form-control" id="title" name="title" required>
         </div>
         <div class="form-group mb-3">
-            <label for="description">Description</label>
+            <label for="description"  th:text="#{label.description}"/>
             <textarea class="form-control" id="description" name="description" required></textarea>
         </div>
         <div class="form-group mb-3">
-            <label for="url">URL</label>
+            <label for="url" th:text="#{label.url}"/>
             <input class="form-control" id="url" name="url"/>
         </div>
         <div class="form-group mb-3">
-            <label for="imageFile">Image:</label>
+            <label for="imageFile" th:text="#{label.image}"/>
             <input type="file" id="imageFile" class="form-control" name="imageFile" accept="image/*" oninput="">
         </div>
         <div class="form-group">
-            <label for="deadline">Deadline</label>
+            <label for="deadline" th:text="#{label.deadline}"/>
             <input type="date" class="form-control" id="deadline" name="deadline"  required/>
         </div>
         <br/>
-        <button type="submit" class="btn btn-primary">Add To-Do</button>
+        <button type="submit" class="btn btn-primary" th:text="#{btn.add}"/>
     </form>
 
+    <h3 style="margin: 0 auto 15px auto !important;">
+        <th:block th:each="stat : ${stats}">
+            <span th:if="${stat.highlight == T(org.eu.todo.web.display.Highlight).RED}" class="alert alert-danger alert-dismissible" role="alert" th:text="#{status.overdue(${stat.count})}"/>
+            <span th:if="${stat.highlight == T(org.eu.todo.web.display.Highlight).YELLOW}" class="alert alert-warning alert-dismissible" role="alert"  th:text="#{status.warning(${stat.count})}"/>
+        </th:block>
+    </h3>
+    <br />
     <table class="table table-bordered">
         <thead>
         <tr>
             <th scope="col">#</th>
-            <th scope="col">Title</th>
-            <th scope="col">Description</th>
-            <th scope="col">URL</th>
-            <th scope="col">Image</th>
-            <th scope="col">Deadline</th>
-            <th scope="col">Remove</th>
+            <th scope="col" th:text="#{label.title}"/>
+            <th scope="col" th:text="#{label.description}"/>
+            <th scope="col" th:text="#{label.url}"/>
+            <th scope="col" th:text="#{label.image}">Image</th>
+            <th scope="col" th:text="#{label.deadline}">Deadline</th>
+            <th scope="col" th:text="#{btn.remove}">Remove</th>
         </tr>
         </thead>
         <tbody>
@@ -51,7 +58,7 @@
             <td th:text="${todo.description}" th:class="${todo.highlight.getContent()}">Sample Description</td>
             <td th:text="${todo.url}" th:class="${todo.highlight.getContent()}">Sample URL</td>
             <td th:class="${todo.highlight.getContent()}">
-                <img th:if="${todo.image() != null }" th:src="@{'/image/' + ${todo.id}}" alt="Todo Image" style="width: 100px; height: auto;">
+                <img th:if="${todo.image != null }" th:src="@{'/image/' + ${todo.id}}" alt="Todo Image" style="width: 100px; height: auto;">
             </td>
             <td th:text="${todo.deadline}" th:class="${todo.highlight.getContent()}"></td>
             <td th:class="${todo.highlight.getContent()}"><a th:href="@{'/'+${todo.id}}" class="btn btn-danger">Delete</a></td>
