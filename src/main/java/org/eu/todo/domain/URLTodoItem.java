@@ -1,11 +1,13 @@
 package org.eu.todo.domain;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
+@Table(name = "url")
 public final class URLTodoItem extends TodoItem {
 
 	private String url;

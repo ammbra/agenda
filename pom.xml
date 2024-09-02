@@ -77,6 +77,18 @@
 					<enablePreview>true</enablePreview>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>--enable-preview</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<argLine>--enable-preview</argLine>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

@@ -1,6 +1,7 @@
 package org.eu.todo.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -9,17 +10,17 @@ import java.util.Objects;
 @Inheritance(
 		strategy = InheritanceType.JOINED
 )
+@Table(name = "todo")
 public class TodoItem {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "todo_generator")
+	@SequenceGenerator(name="todo_generator", sequenceName = "todo_seq", allocationSize=50)
 	private Long id;
 
 	private String title;
 
 	private String description;
-
-	private int priority;
 
 	@Temporal(TemporalType.DATE)
 	private LocalDate createdOn;
@@ -58,14 +59,6 @@ public class TodoItem {
 
 	public void setDescription(String description) {
 		this.description = description;
-	}
-
-	public int getPriority() {
-		return priority;
-	}
-
-	public void setPriority(int priority) {
-		this.priority = priority;
 	}
 
 	public LocalDate getCreatedOn() {

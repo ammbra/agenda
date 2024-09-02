@@ -3,12 +3,14 @@ package org.eu.todo.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Objects;
 
 @Entity
+@Table(name = "image")
 public final class ImageTodoItem extends TodoItem {
 
 	@Lob

@@ -36,7 +36,7 @@ public class TodoController {
 		for (TodoItem item : todoRepository.findAll(Sort.by(Sort.Direction.ASC, "deadline"))) {
 			Highlight color = findColor(item);
 			Memo memo = paint(item, color);
-			memos.add(paint(item, color));
+			memos.add(memo);
 		}
 
 		List<Statistic> stats = memos.stream().map(m -> new Statistic(m.highlight(), 0))
@@ -47,6 +47,13 @@ public class TodoController {
 		return "index";
 	}
 
+	/**
+	 * Paints a given TodoItem into a Memo object with a specified highlight color.
+	 *
+	 * @param item  the TodoItem to be painted
+	 * @param color the Highlight color to apply to the Memo
+	 * @return a Memo object containing details from the input TodoItem and the applied highlight color
+	 */
 	private static Memo paint(TodoItem item, Highlight color) {
 		Memo memo = switch (item) {
 			case ImageTodoItem i ->
@@ -59,6 +66,12 @@ public class TodoController {
 		return memo;
 	}
 
+	/**
+	 * Determines the appropriate highlight color for a given TodoItem based on its deadline.
+	 *
+	 * @param item the TodoItem whose deadline will determine the highlight color
+	 * @return the Highlight enum value representing the determined color
+	 */
 	private static Highlight findColor(TodoItem item) {
 		return switch (item.getDeadline()) {
 			case LocalDate d when d.isBefore(LocalDate.now()) -> Highlight.RED;
@@ -90,11 +103,10 @@ public class TodoController {
     @GetMapping("/image/{id}")
     @ResponseBody
     public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
-		ImageTodoItem todo = (ImageTodoItem) todoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid todo ID:" + id));
-        if (todo != null) {
-            return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(todo.getImage());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+		TodoItem item = todoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid todo ID:" + id));
+		if (item instanceof ImageTodoItem todo && item != null) {
+			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(todo.getImage());
+		}
+		return ResponseEntity.notFound().build();
     }
 }
