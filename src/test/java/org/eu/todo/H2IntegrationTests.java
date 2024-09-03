@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.eu.todo.domain.ImageRepository;
 import org.eu.todo.domain.ImageTodoItem;
 import org.eu.todo.domain.TodoItem;
 import org.eu.todo.domain.TodoRepository;
@@ -59,6 +60,10 @@ public class H2IntegrationTests {
 
 	@Autowired
 	private TodoRepository repo;
+
+	@Autowired
+	private ImageRepository imageRepository;
+
 
 	@Autowired
 	private RestTemplateBuilder builder;

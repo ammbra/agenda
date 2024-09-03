@@ -21,9 +21,9 @@ public final class ImageTodoItem extends TodoItem {
 
 	}
 
-	public ImageTodoItem(String title, String description, byte[] image, LocalDate createdOn, LocalDate deadline) {
+	public ImageTodoItem(String title, String description, byte[] image,LocalDate createdOn, LocalDate deadline) {
 		if (deadline.isBefore(createdOn))
-			throw new IllegalArgumentException("Cannot create store with deadline before its creation date");
+			throw new IllegalArgumentException("Cannot create item with deadline before its creation date");
 		super(title, description, createdOn, deadline);
 		this.image = image;
 	}

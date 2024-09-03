@@ -16,9 +16,9 @@ public final class URLTodoItem extends TodoItem {
 
 	public URLTodoItem(String title, String description, String url, LocalDate createdOn, LocalDate deadline) {
 		if (deadline.isBefore(createdOn))
-			throw new IllegalArgumentException("Cannot create store with deadline before its creation date");
-		super(title, description, createdOn, deadline);
+			throw new IllegalArgumentException("Cannot create item with deadline before its creation date");
 		this.url = url;
+		super(title, description, createdOn, deadline);
 	}
 
 	public String getUrl() {

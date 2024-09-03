@@ -12,6 +12,7 @@ create table image (id bigint not null,
 create table todo (created_on date,
                    deadline date,
                    id bigint not null default nextval('t_id_seq'),
+                   priority int,
                    description varchar(255),
                    title varchar(255),
                    primary key (id)

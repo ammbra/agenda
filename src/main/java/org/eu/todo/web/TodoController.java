@@ -2,7 +2,6 @@ package org.eu.todo.web;
 
 import org.eu.todo.domain.*;
 import org.eu.todo.web.display.Highlight;
-import org.eu.todo.web.operations.MapCountByGatherer;
 import org.eu.todo.web.display.Memo;
 import org.eu.todo.web.display.Statistic;
 import org.springframework.data.domain.Sort;
@@ -25,8 +24,11 @@ public class TodoController {
 
 	private final TodoRepository todoRepository;
 
-	public TodoController(TodoRepository todoRepository) {
+	private final ImageRepository imageRepository;
+
+	public TodoController(TodoRepository todoRepository, ImageRepository imageRepository) {
 		this.todoRepository = todoRepository;
+		this.imageRepository = imageRepository;
 	}
 
 	@GetMapping("/")
@@ -39,8 +41,11 @@ public class TodoController {
 			memos.add(memo);
 		}
 
-		List<Statistic> stats = memos.stream().map(m -> new Statistic(m.highlight(), 0))
-				.gather(new MapCountByGatherer<>(Statistic::highlight)).collect(Collectors.toList());
+		List<Statistic> stats = memos.stream()
+				.collect(Collectors.groupingBy(Memo::highlight, Collectors.counting()))
+				.entrySet().stream()
+				.map(entry -> new Statistic(entry.getKey(), entry.getValue().intValue()))
+				.toList();
 
 		model.addAttribute("stats", stats);
 		model.addAttribute("todos", memos);
@@ -55,15 +60,14 @@ public class TodoController {
 	 * @return a Memo object containing details from the input TodoItem and the applied highlight color
 	 */
 	private static Memo paint(TodoItem item, Highlight color) {
-		Memo memo = switch (item) {
+		return switch (item) {
 			case ImageTodoItem i ->
-					new Memo(i.getId(), i.getTitle(), i.getDescription(), null, i.getImage(), color, i.getCreatedOn(), i.getDeadline());
+					new Memo(i.getId(), i.getTitle(), i.getDescription(), null, i.getImage(), color, i.getDeadline());
 			case URLTodoItem u ->
-					new Memo(u.getId(), u.getTitle(), u.getDescription(), u.getUrl(), null, color, u.getCreatedOn(), u.getDeadline());
+					new Memo(u.getId(), u.getTitle(), u.getDescription(), u.getUrl(), null, color, u.getDeadline());
 			case TodoItem t ->
-					new Memo(t.getId(), t.getTitle(), t.getDescription(), null, null, color, t.getCreatedOn(), t.getDeadline());
+					new Memo(t.getId(), t.getTitle(), t.getDescription(), null, null, color, t.getDeadline());
 		};
-		return memo;
 	}
 
 	/**
@@ -73,11 +77,11 @@ public class TodoController {
 	 * @return the Highlight enum value representing the determined color
 	 */
 	private static Highlight findColor(TodoItem item) {
-		return switch (item.getDeadline()) {
-			case LocalDate d when d.isBefore(LocalDate.now()) -> Highlight.RED;
-			case LocalDate d when d.isBefore(LocalDate.now().plusDays(10)) -> Highlight.YELLOW;
-			case LocalDate d when d.isBefore(LocalDate.now().plusDays(20)) -> Highlight.BLUE;
-			case LocalDate _ -> Highlight.WHITE;
+		return switch (item.getPriority()) {
+			case long l when l < 0 -> Highlight.RED;
+			case 0L -> Highlight.YELLOW;
+			case 1L -> Highlight.BLUE;
+			case long _ -> Highlight.WHITE;
 		};
 	}
 
@@ -88,7 +92,7 @@ public class TodoController {
 			case String _ when  !imageFile.isEmpty() -> new ImageTodoItem(todo.title(), todo.description(), imageFile.getBytes(), LocalDate.now(), todo.deadline());
 			case String _ -> new URLTodoItem(todo.title(), todo.description(), todo.url(), LocalDate.now(), todo.deadline());
 		};
-
+		item.setPriority(item.determineUrgency());
 		todoRepository.save(item);
 		return "redirect:/";
 	}
@@ -103,10 +107,7 @@ public class TodoController {
     @GetMapping("/image/{id}")
     @ResponseBody
     public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
-		TodoItem item = todoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid todo ID:" + id));
-		if (item instanceof ImageTodoItem todo && item != null) {
-			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(todo.getImage());
-		}
-		return ResponseEntity.notFound().build();
-    }
+		ImageTodoItem item = imageRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid todo ID:" + id));
+		return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(item.getImage());
+	}
 }
