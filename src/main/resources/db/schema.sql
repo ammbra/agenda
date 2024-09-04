@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS image CASCADE;
 DROP TABLE IF EXISTS todo CASCADE;
 DROP TABLE IF EXISTS url CASCADE;
 
-create sequence todo_seq start with 4 increment by 50;
+create sequence todo_seq start with 1 increment by 50;
 
 create table image (id bigint not null,
                     image blob,
