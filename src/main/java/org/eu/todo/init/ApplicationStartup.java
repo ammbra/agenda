@@ -36,9 +36,8 @@ public class ApplicationStartup implements ApplicationListener<ApplicationReadyE
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
-		List<List<String>> data = ScopedValue.where(VALID_FILE, todoFilePath).call(() -> TodoFile.processContent(todoFilePath, urlFilePath, mixFilePath));
-		ScopedValue.where(VALID_FILE, todoFilePath)
-				.call(() -> TodoFile.processContent(todoFilePath, urlFilePath, mixFilePath));
+		List<List<String>> data = ScopedValue.callWhere(VALID_FILE, todoFilePath, () -> TodoFile.processContent(todoFilePath, urlFilePath, mixFilePath));
+
 		List<TodoItem> items = new ArrayList<>();
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		for (List<String> row : data) {
