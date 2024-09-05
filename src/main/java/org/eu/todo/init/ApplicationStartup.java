@@ -55,33 +55,4 @@ public class ApplicationStartup implements ApplicationListener<ApplicationReadyE
 		}
 		todoRepository.saveAll(items);
 	}
-//		try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-//			var baseTodo = scope.fork(() -> parseCSVFile(todoFile));
-//			var urlTodo = scope.fork(() -> parseCSVFile(urlFile));
-//			var mixTodo = scope.fork(() -> parseCSVFile(mixFile));
-//
-//			scope.join();
-//			scope.throwIfFailed(IllegalStateException::new);
-//
-//			List<List<String>> data = baseTodo.get();
-//			data.addAll(urlTodo.get());
-//			data.addAll(mixTodo.get());
-//
-//
-//			List<TodoItem> items = new ArrayList<>();
-//			DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-//			for (List<String> row : data) {
-//				TodoItem item = switch (row.get(2)) {
-//					case String s when row.size() == 4 -> new TodoItem(row.getLast(), s, LocalDate.parse(row.getFirst(), df), LocalDate.parse(row.get(1), df));
-//					case String s when s.startsWith("http") || s.startsWith("www") -> new URLTodoItem(row.getLast(), row.get(3), s, LocalDate.parse(row.getFirst(), df), LocalDate.parse(row.get(1), df));
-//					case String s when row.size() == 5 -> new ImageTodoItem(row.getLast(), row.get(3), s.getBytes(), LocalDate.parse(row.getFirst(), df), LocalDate.parse(row.get(1), df));
-//					case String _ -> throw new IllegalStateException("Cannot process details...");
-//				};
-//				item.setPriority(item.determineUrgency());
-//				items.add(item);
-//			}
-//			todoRepository.saveAll(items);
-//		} catch (InterruptedException e) {
-//			throw new RuntimeException(e);
-//		}
 }
