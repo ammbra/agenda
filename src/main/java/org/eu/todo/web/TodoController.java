@@ -72,13 +72,12 @@ public class TodoController {
 
 	/**
 	 * Determines the appropriate highlight color for a given TodoItem based on its deadline.
-	 *
 	 * @param item the TodoItem whose deadline will determine the highlight color
 	 * @return the Highlight enum value representing the determined color
 	 */
 	private static Highlight findColor(TodoItem item) {
 		return switch (item.getPriority()) {
-			case long l when l < 0 -> Highlight.RED;
+			case long p when p < 0 -> Highlight.RED;
 			case 0L -> Highlight.YELLOW;
 			case 1L -> Highlight.BLUE;
 			case long _ -> Highlight.WHITE;
