@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -36,23 +35,33 @@ public class ApplicationStartup implements ApplicationListener<ApplicationReadyE
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
-		List<List<String>> data = ScopedValue.callWhere(VALID_FILE, todoFilePath, () -> TodoFile.processContent(todoFilePath, urlFilePath, mixFilePath));
+		ScopedValue.where(VALID_FILE, todoFilePath).run(this::processFiles);
+	}
 
-		List<TodoItem> items = new ArrayList<>();
-		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		for (List<String> row : data) {
-			TodoItem item = switch (row.get(2)) {
-				case String s when row.size() == 4 ->
-						new TodoItem(row.getLast(), s, LocalDate.parse(row.getFirst(), df), LocalDate.parse(row.get(1), df));
-				case String s when s.startsWith("http") || s.startsWith("www") ->
-						new URLTodoItem(row.getLast(), row.get(3), s, LocalDate.parse(row.getFirst(), df), LocalDate.parse(row.get(1), df));
-				case String s when row.size() == 5 ->
-						new ImageTodoItem(row.getLast(), row.get(3), s.getBytes(), LocalDate.parse(row.getFirst(), df), LocalDate.parse(row.get(1), df));
-				case String _ -> throw new IllegalStateException("Cannot process details...");
-			};
-			item.setPriority(item.determineUrgency());
-			items.add(item);
-		}
+	private void processFiles() {
+		List<List<String>> data = TodoFile.processContent(todoFilePath, urlFilePath, mixFilePath);
+		List<TodoItem> items = data.stream()
+				.map(this::mapItem)
+				.peek(todoItem -> todoItem.setPriority(todoItem.determineUrgency()))
+				.toList();
 		todoRepository.saveAll(items);
+	}
+
+	private TodoItem mapItem(List<String> row) {
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String title = row.getLast();
+		String content = row.get(2);
+		LocalDate startDate = LocalDate.parse(row.getFirst(), df);
+		LocalDate endDate = LocalDate.parse(row.get(1), df);
+
+		return switch (content) {
+			case String s when row.size() == 4 ->
+					new TodoItem(title, s, startDate, endDate);
+			case String s when s.startsWith("http") || s.startsWith("www") ->
+					new URLTodoItem(row.getLast(), row.get(3), s, startDate, endDate);
+			case String s when row.size() == 5 ->
+					new ImageTodoItem(row.getLast(), row.get(3), s.getBytes(), startDate, endDate);
+			case String _ -> throw new IllegalStateException("Cannot process details...");
+		};
 	}
 }

@@ -7,10 +7,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.eu.todo.init.ApplicationStartup.VALID_FILE;
+import static java.util.concurrent.StructuredTaskScope.Joiner;
 
 record TodoFile(List<List<String>> data) {
 
@@ -18,49 +20,33 @@ record TodoFile(List<List<String>> data) {
 		if (!VALID_FILE.isBound()) {
 			throw new IllegalStateException("The file path state is not bound");
 		} else {
-			try {
-				if (Files.lines(Path.of(VALID_FILE.get())).toList().size() > 0) {
-					throw new IllegalStateException("The provided path is not a file");
-				}
-			} catch (IOException e) {
-				throw new IllegalStateException("The file path state is not valid");
+			if (Files.isDirectory(Path.of(VALID_FILE.get()))) {
+				throw new IllegalStateException("The provided path is not a file");
 			}
-		}
-	}
-
-	public static class FileScope extends StructuredTaskScope<TodoFile> {
-	//...
-		private final List<TodoFile> todos = new ArrayList<>();
-
-		@Override
-		protected void handleComplete(Subtask<? extends TodoFile> subtask) {
-			switch (subtask.state()) {
-				case UNAVAILABLE -> throw new IllegalStateException("File content pending processing...");
-				case SUCCESS -> this.todos.add(subtask.get());
-				case FAILED -> subtask.exception();
-			}
-		}
-
-		public List<List<String>> processContent() {
-			return this.todos.stream().flatMap(p -> p.data().stream()).collect(Collectors.toList());
 		}
 	}
 
 	public static List<List<String>> processContent(String todoFilePath, String urlFilePath, String mixFilePath) {
 
-		try (var scope = new FileScope()) {
+		try (var scope = StructuredTaskScope.<TodoFile>open()) {
 
-			scope.fork(() -> parseCSV(todoFilePath));
-			scope.fork(() -> parseCSV(urlFilePath));
-			scope.fork(() -> parseCSV(mixFilePath));
+			var todoTask = scope.fork(() -> parseCSV(todoFilePath));
+			var urlTask = scope.fork(() -> parseCSV(urlFilePath));
+			var mixTask = scope.fork(() -> parseCSV(mixFilePath));
 
 			scope.join();
 
-			return scope.processContent();
+			List<List<String>> result = new ArrayList<>();
+			result.addAll(todoTask.get().data());
+			result.addAll(urlTask.get().data());
+			result.addAll(mixTask.get().data());
+
+			return result;
 
 		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Processing was interrupted", e);
 		}
+
 	}
 
 	private static TodoFile parseCSV(String filePath) throws IOException {
@@ -74,7 +60,5 @@ record TodoFile(List<List<String>> data) {
 		}
 		return new TodoFile(result);
 	}
-
-
 
 }
